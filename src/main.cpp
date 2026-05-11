@@ -1,57 +1,59 @@
-#include <Arduino.h>
+#define BLYNK_PRINT Serial 
+#define BLYNK_TEMPLATE_ID "TMPL2rSkJhaZ9"
+#define BLYNK_TEMPLATE_NAME "dispensador "
+#define BLYNK_AUTH_TOKEN "o9Fb57WdJ1RVxCyDz6xE8ghN_0JPYM-F"
+
 #include <WiFi.h>
+#include <WiFiClient.h>
+#include <BlynkSimpleEsp32.h>
 #include <ESP32Servo.h>
 
-// --- Configuración ---
-const char* ssid = "SilvaRomero";
-const char* password = "2014.AmbaR!2020.AurelianO?";
+char ssid[] = "SilvaRomero";
+char pass[] = "2014.AmbaR!2020.AurelianO?";
 
 Servo miServo;
+BlynkTimer timer; 
+
 const int pinServo = 12; 
 const int FRENO = 72; 
-const long INTERVALO_ESPERA = 5000;
+bool dispensando = false;
 
-unsigned long ultimoTiempoFinalizado = 0;
-int contadorPorciones = 0;
-
-// Prototipo de función (Requerido en C++ puro / PIO)
-void dispensarComida();
-
-void setup() {
-    Serial.begin(115200);
-
-    // Configuración específica de ESP32Servo
-    ESP32PWM::allocateTimer(0);
-    miServo.setPeriodHertz(50);
-    miServo.attach(pinServo, 500, 2400);
-    
+// Función para detener el servo
+void detenerServo() {
     miServo.write(FRENO);
-
-    // Intento de conexión WiFi
-    WiFi.begin(ssid, password);
-    
-    // Espera máxima de 5 segundos para no bloquear el inicio
-    unsigned long startAttemptTime = millis();
-    while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 5000) {
-        delay(500);
-    }
-
-}
-
-void loop() {
-    unsigned long tiempoActual = millis();
-
-    if (tiempoActual - ultimoTiempoFinalizado >= INTERVALO_ESPERA) {
-
-        dispensarComida();
-        
-        ultimoTiempoFinalizado = millis();
-    }
+    dispensando = false;
+    Blynk.virtualWrite(V1, 0); // Apaga el botón en la App automáticamente
+    Serial.println("Dispensado terminado.");
 }
 
 void dispensarComida() {
-    miServo.write(180); 
-    delay(5000); 
+    if (!dispensando) { // Evita que se active varias veces al mismo tiempo
+        dispensando = true;
+        miServo.write(180); 
+        Serial.println("Dispensando...");
+        
+        timer.setTimeout(5000L, detenerServo);
+    }
+}
+
+BLYNK_WRITE(V1) {
+    if (param.asInt() == 1) {
+        dispensarComida();
+    }
+}
+
+void setup() {
+    Serial.begin(115200);
     
+    ESP32PWM::allocateTimer(0);
+    miServo.setPeriodHertz(50);
+    miServo.attach(pinServo, 500, 2400);
     miServo.write(FRENO);
+
+    Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+}
+
+void loop() {
+    Blynk.run();
+    timer.run(); // Necesario para que funcionen los timers
 }
