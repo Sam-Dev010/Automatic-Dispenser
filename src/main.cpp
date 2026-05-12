@@ -4,13 +4,17 @@
 #define BLYNK_TEMPLATE_NAME "NOMBRE DASHBOARD"
 #define BLYNK_AUTH_TOKEN "TOKEN"
 // Asegúrate de reemplazar los valores anteriores con los de tu proyecto en Blynk.
+
+// Librerías necesarias
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <BlynkSimpleEsp32.h>
 #include <ESP32Servo.h>
+
 // Configuración de WiFi
 char ssid[] = "NOMBRE RED";
 char pass[] = "CONTRASEÑA";
+
 // Configuración del servo
 Servo miServo;
 BlynkTimer timer; 
