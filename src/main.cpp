@@ -21,7 +21,7 @@ BlynkTimer timer;
 // Configuración del pin del servo y posición de frenado
 const int pinServo = 12; 
 const int FRENO = 72; 
-bool dispensando ;
+bool dispensando = false;
 
 // Función para detener el servo
 void detenerServo() {
@@ -33,13 +33,14 @@ void detenerServo() {
 
 // Función para dispensar comida
 void dispensarComida() {
-   // Evita que se active varias veces al mismo tiempo
-        // dispensando = true;
-        miServo.write(180); 
-        Serial.println("Dispensando...");
-        
-        timer.setTimeout(5000L, detenerServo);
+    // Evita que se active varias veces al mismo tiempo
+    if (dispensando) return;
+
+    dispensando = true;
+    miServo.write(180); 
+    Serial.println("Dispensando...");
     
+    timer.setTimeout(5000L, detenerServo);
 }
 
 // Función que se ejecuta cuando se presiona el botón en la App
@@ -76,6 +77,10 @@ void setup() {
     } else {
         Serial.println("\nError: No se pudo conectar al WiFi.");
     }
+
+    // Inicializar servo
+    miServo.attach(pinServo);
+    miServo.write(FRENO);
 
     // Luego intentas Blynk
     Blynk.config(BLYNK_AUTH_TOKEN);
