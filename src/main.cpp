@@ -1,22 +1,22 @@
 #define BLYNK_PRINT Serial 
-#define BLYNK_TEMPLATE_ID "TMPL2rSkJhaZ9"
-#define BLYNK_TEMPLATE_NAME "dispensador "
-#define BLYNK_AUTH_TOKEN "o9Fb57WdJ1RVxCyDz6xE8ghN_0JPYM-F"
+#define BLYNK_TEMPLATE_ID "TU ID"
+#define BLYNK_TEMPLATE_NAME "NOMBRE DASHBOARD"
+#define BLYNK_AUTH_TOKEN "TOKEN"
 
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <BlynkSimpleEsp32.h>
 #include <ESP32Servo.h>
 
-char ssid[] = "SilvaRomero";
-char pass[] = "2014.AmbaR!2020.AurelianO?";
+char ssid[] = "NOMBRE RED";
+char pass[] = "CONTRASEÑA";
 
 Servo miServo;
 BlynkTimer timer; 
 
 const int pinServo = 12; 
 const int FRENO = 72; 
-bool dispensando = false;
+bool dispensando ;
 
 // Función para detener el servo
 void detenerServo() {
@@ -27,30 +27,51 @@ void detenerServo() {
 }
 
 void dispensarComida() {
-    if (!dispensando) { // Evita que se active varias veces al mismo tiempo
-        dispensando = true;
+   // Evita que se active varias veces al mismo tiempo
+        // dispensando = true;
         miServo.write(180); 
         Serial.println("Dispensando...");
         
         timer.setTimeout(5000L, detenerServo);
-    }
+    
 }
 
 BLYNK_WRITE(V1) {
-    if (param.asInt() == 1) {
+    int valor = param.asInt();
+    Serial.print("Señal recibida: ");
+    Serial.println(valor);
+
+    if (valor > 0) { // Ahora funcionará si mandas 1, 255 o cualquier número positivo
         dispensarComida();
     }
 }
 
-void setup() {
+    void setup() {
     Serial.begin(115200);
+    delay(1000); 
     
-    ESP32PWM::allocateTimer(0);
-    miServo.setPeriodHertz(50);
-    miServo.attach(pinServo, 500, 2400);
-    miServo.write(FRENO);
+    Serial.println("Iniciando WiFi...");
+    WiFi.begin(ssid, pass);
 
-    Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+    // Esperar máximo 10 segundos
+    int contador = 0;
+    while (WiFi.status() != WL_CONNECTED && contador < 20) {
+        delay(500);
+        Serial.print(".");
+        contador++;
+    }
+
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("\n¡WiFi Conectado!");
+        Serial.print("IP: ");
+        Serial.println(WiFi.localIP());
+    } else {
+        Serial.println("\nError: No se pudo conectar al WiFi.");
+    }
+
+    // Luego intentas Blynk
+    Blynk.config(BLYNK_AUTH_TOKEN);
+    Blynk.connect();
 }
 
 void loop() {
