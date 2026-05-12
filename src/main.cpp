@@ -1,19 +1,20 @@
+// Uso de blynk wifi por medio de un boton en la app, para activar un servo que dispensa comida a una mascota. El servo se detiene automáticamente después de 5 segundos.
 #define BLYNK_PRINT Serial 
 #define BLYNK_TEMPLATE_ID "TU ID"
 #define BLYNK_TEMPLATE_NAME "NOMBRE DASHBOARD"
 #define BLYNK_AUTH_TOKEN "TOKEN"
-
+// Asegúrate de reemplazar los valores anteriores con los de tu proyecto en Blynk.
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <BlynkSimpleEsp32.h>
 #include <ESP32Servo.h>
-
+// Configuración de WiFi
 char ssid[] = "NOMBRE RED";
 char pass[] = "CONTRASEÑA";
-
+// Configuración del servo
 Servo miServo;
 BlynkTimer timer; 
-
+// Configuración del pin del servo y posición de frenado
 const int pinServo = 12; 
 const int FRENO = 72; 
 bool dispensando ;
@@ -26,6 +27,7 @@ void detenerServo() {
     Serial.println("Dispensado terminado.");
 }
 
+// Función para dispensar comida
 void dispensarComida() {
    // Evita que se active varias veces al mismo tiempo
         // dispensando = true;
@@ -36,6 +38,7 @@ void dispensarComida() {
     
 }
 
+// Función que se ejecuta cuando se presiona el botón en la App
 BLYNK_WRITE(V1) {
     int valor = param.asInt();
     Serial.print("Señal recibida: ");
@@ -46,7 +49,8 @@ BLYNK_WRITE(V1) {
     }
 }
 
-    void setup() {
+// Configuración inicial
+void setup() {
     Serial.begin(115200);
     delay(1000); 
     
@@ -60,7 +64,7 @@ BLYNK_WRITE(V1) {
         Serial.print(".");
         contador++;
     }
-
+    // Verificar si se conectó al WiFi
     if (WiFi.status() == WL_CONNECTED) {
         Serial.println("\n¡WiFi Conectado!");
         Serial.print("IP: ");
@@ -74,6 +78,7 @@ BLYNK_WRITE(V1) {
     Blynk.connect();
 }
 
+// Bucle principal
 void loop() {
     Blynk.run();
     timer.run(); // Necesario para que funcionen los timers
